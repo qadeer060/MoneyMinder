@@ -168,6 +168,20 @@ async function loadDashboard() {
 function renderDashboard(data) {
     document.getElementById("total-value").textContent = `$${data.total.toFixed(2)}`;
 
+    // Pre-fill the budget input with whatever's already saved
+    const budgetInput = document.getElementById("budget-input");
+    if (document.activeElement !== budgetInput) {
+        budgetInput.value = data.budget ? data.budget : "";
+    }
+
+    renderBudgetBanner(data.budget_status);
+    renderBudgetProgress(data.budget_status);
+
+    const totalPercentText = document.getElementById("total-percent-text");
+    totalPercentText.textContent = data.budget_status
+        ? `${data.budget_status.percent_used}% of your $${data.budget_status.budget.toFixed(2)} budget`
+        : "";
+
     const breakdownList = document.getElementById("breakdown-list");
     const categories = Object.keys(data.breakdown).sort();
     breakdownList.innerHTML = categories.length
@@ -199,6 +213,7 @@ function renderDashboard(data) {
             <td>${escapeHtml(exp.item)}</td>
             <td><span class="category-tag">${escapeHtml(exp.category)}</span></td>
             <td>$${exp.amount.toFixed(2)}</td>
+            <td>${exp.percent_of_budget !== null && exp.percent_of_budget !== undefined ? exp.percent_of_budget + "%" : "—"}</td>
             <td>${escapeHtml(exp.created_at)}</td>
             <td><button class="btn-delete" data-id="${exp.id}" title="Delete">✕</button></td>
         </tr>`
@@ -208,13 +223,14 @@ function renderDashboard(data) {
     wrap.innerHTML = `
         <table class="expense-table">
             <thead>
-                <tr><th>Item</th><th>Category</th><th>Amount</th><th>Date</th><th></th></tr>
+                <tr><th>Item</th><th>Category</th><th>Amount</th><th>% of Budget</th><th>Date</th><th></th></tr>
             </thead>
             <tbody>${rows}</tbody>
         </table>`;
 
     wrap.querySelectorAll(".btn-delete").forEach((btn) => {
         btn.addEventListener("click", async () => {
+            if (!confirm("Delete this expense? This can't be undone.")) return;
             try {
                 await apiFetch(`/api/expenses/${btn.dataset.id}`, { method: "DELETE" });
                 showFlash("Expense deleted.", "success");
@@ -225,6 +241,52 @@ function renderDashboard(data) {
         });
     });
 }
+
+function renderBudgetBanner(status) {
+    const banner = document.getElementById("budget-banner");
+    if (!status) {
+        banner.innerHTML = "";
+        return;
+    }
+    if (status.level === "over") {
+        banner.innerHTML = `<div class="flash flash-error">You've gone over your monthly budget — you're at ${status.percent_used}% of $${status.budget.toFixed(2)}.</div>`;
+    } else if (status.level === "warning") {
+        banner.innerHTML = `<div class="flash flash-warning">Heads up — you're at ${status.percent_used}% of your monthly budget ($${status.budget.toFixed(2)}).</div>`;
+    } else {
+        banner.innerHTML = "";
+    }
+}
+
+function renderBudgetProgress(status) {
+    const wrap = document.getElementById("budget-progress-wrap");
+    if (!status) {
+        wrap.innerHTML = '<p class="empty-text">Set a monthly budget to track how close you are to it.</p>';
+        return;
+    }
+    const pct = Math.min(status.percent_used, 100);
+    const levelClass = status.level === "over" ? "over" : status.level === "warning" ? "warning" : "ok";
+    wrap.innerHTML = `
+        <div class="progress-track">
+            <div class="progress-fill progress-${levelClass}" style="width: ${pct}%"></div>
+        </div>
+        <p class="progress-label">${status.percent_used}% of $${status.budget.toFixed(2)} used</p>
+    `;
+}
+
+document.getElementById("budget-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const budget = document.getElementById("budget-input").value;
+    try {
+        await apiFetch("/api/budget", {
+            method: "POST",
+            body: JSON.stringify({ budget }),
+        });
+        showFlash("Budget saved.", "success");
+        loadDashboard();
+    } catch (err) {
+        showFlash(err.message, "error");
+    }
+});
 
 function escapeHtml(str) {
     const div = document.createElement("div");
@@ -257,11 +319,15 @@ document.getElementById("add-form").addEventListener("submit", async (e) => {
     const category = document.getElementById("add-category").value;
 
     try {
-        await apiFetch("/api/expenses", {
+        const result = await apiFetch("/api/expenses", {
             method: "POST",
             body: JSON.stringify({ item, amount, category }),
         });
-        showFlash(`Added "${item}"`, "success");
+        const pct = result.expense && result.expense.percent_of_budget;
+        const msg = pct !== null && pct !== undefined
+            ? `Added "${item}" — that's ${pct}% of your monthly budget.`
+            : `Added "${item}".`;
+        showFlash(msg, "success");
         document.getElementById("add-form").reset();
         navigate("dashboard");
     } catch (err) {
