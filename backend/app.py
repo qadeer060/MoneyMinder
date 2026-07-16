@@ -279,13 +279,26 @@ def add_expense():
     if amount <= 0:
         return jsonify({"error": "Amount must be greater than zero"}), 400
 
+    user = request.current_user
+    budget = user.monthly_budget
+    if budget and budget > 0:
+        current_total = sum(e.amount for e in user.expenses)
+        remaining = budget - current_total
+        if amount > remaining:
+            return jsonify({
+                "error": (
+                    f"This expense exceeds your monthly budget. "
+                    f"You have ${remaining:.2f} left of your ${budget:.2f} budget, "
+                    f"but this expense is ${amount:.2f}."
+                )
+            }), 400
+
     expense = Expense(
         item=item, amount=amount, category=category, user_id=request.current_user.id
     )
     db.session.add(expense)
     db.session.commit()
 
-    user = request.current_user
     new_total = sum(e.amount for e in user.expenses)
 
     return jsonify({
