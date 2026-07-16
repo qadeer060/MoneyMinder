@@ -1,0 +1,306 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root {
+    --ink: #1B2430;
+    --paper: #FBF7EF;
+    --paper-raised: #FFFFFF;
+    --rule: #E4DCC8;
+    --ledger-green: #2F6F4E;
+    --ledger-green-dark: #23573D;
+    --coral: #C1502E;
+    --muted: #7A7263;
+}
+
+* { box-sizing: border-box; }
+
+.view { display: none; }
+.view.active { display: block; }
+
+body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.5;
+}
+
+h1, h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.4em 0;
+}
+
+/* --- Nav --- */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 32px;
+    background: var(--ink);
+    color: var(--paper);
+    border-bottom: 3px solid var(--ledger-green);
+}
+
+.navbar .brand {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--paper);
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: var(--paper);
+    text-decoration: none;
+    font-size: 0.92rem;
+    opacity: 0.85;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+}
+
+.nav-links a:hover {
+    opacity: 1;
+    border-bottom-color: var(--ledger-green);
+}
+
+.nav-user {
+    font-size: 0.85rem;
+    opacity: 0.6;
+    font-style: italic;
+}
+
+/* --- Layout --- */
+.container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+}
+
+/* --- Flash messages --- */
+.flash-container { margin-bottom: 24px; }
+
+.flash {
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 0.92rem;
+    border-left: 4px solid;
+}
+
+.flash-error {
+    background: #FBEAE4;
+    border-color: var(--coral);
+    color: #7A2F17;
+}
+
+.flash-success {
+    background: #E9F3EC;
+    border-color: var(--ledger-green);
+    color: var(--ledger-green-dark);
+}
+
+/* --- Auth cards / forms --- */
+.auth-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 40px;
+    max-width: 420px;
+    margin: 20px auto;
+}
+
+.auth-card h1 { font-size: 1.7rem; }
+
+.subtitle {
+    color: var(--muted);
+    margin-top: 0;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+}
+
+form label {
+    display: block;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-top: 16px;
+    margin-bottom: 6px;
+}
+
+form input, form select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+    background: var(--paper);
+    color: var(--ink);
+}
+
+form input:focus, form select:focus {
+    outline: none;
+    border-color: var(--ledger-green);
+    box-shadow: 0 0 0 3px rgba(47, 111, 78, 0.15);
+}
+
+.btn {
+    display: inline-block;
+    border: none;
+    border-radius: 4px;
+    padding: 11px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: var(--ledger-green);
+    color: var(--paper);
+    margin-top: 22px;
+}
+
+.btn-primary:hover { background: var(--ledger-green-dark); }
+
+.auth-switch {
+    margin-top: 22px;
+    font-size: 0.88rem;
+    color: var(--muted);
+    text-align: center;
+}
+
+.auth-switch a { color: var(--ledger-green-dark); font-weight: 600; }
+
+/* --- Dashboard --- */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.card {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 22px 24px;
+}
+
+.card-label {
+    display: block;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+.total-card .card-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 2.3rem;
+    font-weight: 600;
+    color: var(--ledger-green-dark);
+}
+
+.breakdown-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.breakdown-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.92rem;
+}
+
+.breakdown-list li:last-child { border-bottom: none; }
+
+.category-tag {
+    display: inline-block;
+    background: var(--paper);
+    border: 1px solid var(--ledger-green);
+    color: var(--ledger-green-dark);
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.expense-list-section h2 { font-size: 1.2rem; }
+
+.expense-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.expense-table th {
+    text-align: left;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--rule);
+}
+
+.expense-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.94rem;
+}
+
+.expense-table td:nth-child(3) {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+}
+
+.expense-table tr:last-child td { border-bottom: none; }
+
+.btn-delete {
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--coral);
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btn-delete:hover { background: #FBEAE4; border-color: var(--coral); }
+
+.empty-text { color: var(--muted); font-style: italic; }
+.empty-text a { color: var(--ledger-green-dark); font-weight: 600; }
+
+@media (max-width: 600px) {
+    .summary-cards { grid-template-columns: 1fr; }
+    .navbar { flex-direction: column; gap: 10px; align-items: flex-start; }
+}
