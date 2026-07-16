@@ -2,7 +2,7 @@
 // Example: "https://yourusername.pythonanywhere.com"
 // For local testing against `python app.py`, leave it as the localhost line.
 
-const API_BASE_URL = "http://127.0.0.1:5000";
+const API_BASE_URL = "https://innovationio.pythonanywhere.com";
 
 // Once your backend is live on PythonAnywhere, comment the line above out
 // and uncomment + edit the line below:
