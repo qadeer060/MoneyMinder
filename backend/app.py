@@ -41,6 +41,27 @@ CORS(app)
 
 CATEGORIES = ["Food", "Travel", "Fun", "Bills", "Shopping", "Other"]
 
+# Thresholds for the budget warning banner, as a % of the monthly budget.
+BUDGET_WARNING_PERCENT = 80   # "getting close" — shown as a warning
+BUDGET_OVER_PERCENT = 100     # at or past the budget — shown as danger
+
+
+def compute_budget_status(total, budget):
+    """Returns None if no budget is set, otherwise a dict describing how
+    close the user's total spending is to their monthly budget."""
+    if not budget or budget <= 0:
+        return None
+
+    percent_used = round((total / budget) * 100, 1)
+    if percent_used >= BUDGET_OVER_PERCENT:
+        level = "over"
+    elif percent_used >= BUDGET_WARNING_PERCENT:
+        level = "warning"
+    else:
+        level = "ok"
+
+    return {"budget": budget, "percent_used": percent_used, "level": level}
+
 
 # ---------------------------------------------------------------------------
 # Models
@@ -51,6 +72,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     token = db.Column(db.String(64), unique=True, nullable=True)
+    monthly_budget = db.Column(db.Float, nullable=True, default=None)
     expenses = db.relationship(
         "Expense", backref="user", lazy=True, cascade="all, delete-orphan"
     )
@@ -75,12 +97,18 @@ class Expense(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     def to_dict(self):
+        budget = self.user.monthly_budget if self.user else None
+        percent_of_budget = None
+        if budget and budget > 0:
+            percent_of_budget = round((self.amount / budget) * 100, 1)
+
         return {
             "id": self.id,
             "item": self.item,
             "amount": self.amount,
             "category": self.category,
             "created_at": self.created_at.strftime("%b %d, %Y"),
+            "percent_of_budget": percent_of_budget,
         }
 
 
@@ -162,6 +190,46 @@ def me():
 
 
 # ---------------------------------------------------------------------------
+# Budget routes
+# ---------------------------------------------------------------------------
+
+@app.route("/api/budget", methods=["GET"])
+@token_required
+def get_budget():
+    user = request.current_user
+    total = sum(e.amount for e in user.expenses)
+    return jsonify({
+        "budget": user.monthly_budget,
+        "status": compute_budget_status(total, user.monthly_budget),
+    })
+
+
+@app.route("/api/budget", methods=["POST"])
+@token_required
+def set_budget():
+    data = request.get_json(silent=True) or {}
+    budget_raw = data.get("budget")
+
+    try:
+        budget = float(budget_raw)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Please enter a valid number for the budget"}), 400
+
+    if budget <= 0:
+        return jsonify({"error": "Budget must be greater than zero"}), 400
+
+    request.current_user.monthly_budget = budget
+    db.session.commit()
+
+    total = sum(e.amount for e in request.current_user.expenses)
+    return jsonify({
+        "message": "Budget saved",
+        "budget": budget,
+        "status": compute_budget_status(total, budget),
+    })
+
+
+# ---------------------------------------------------------------------------
 # Expense routes
 # ---------------------------------------------------------------------------
 
@@ -179,11 +247,15 @@ def get_expenses():
     for e in user_expenses:
         breakdown[e.category] = breakdown.get(e.category, 0) + e.amount
 
+    budget = request.current_user.monthly_budget
+
     return jsonify({
         "expenses": [e.to_dict() for e in user_expenses],
         "total": total,
         "breakdown": breakdown,
         "categories": CATEGORIES,
+        "budget": budget,
+        "budget_status": compute_budget_status(total, budget),
     })
 
 
@@ -213,7 +285,14 @@ def add_expense():
     db.session.add(expense)
     db.session.commit()
 
-    return jsonify({"message": "Expense added", "expense": expense.to_dict()}), 201
+    user = request.current_user
+    new_total = sum(e.amount for e in user.expenses)
+
+    return jsonify({
+        "message": "Expense added",
+        "expense": expense.to_dict(),
+        "budget_status": compute_budget_status(new_total, user.monthly_budget),
+    }), 201
 
 
 @app.route("/api/expenses/<int:expense_id>", methods=["DELETE"])
