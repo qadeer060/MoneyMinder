@@ -8,6 +8,7 @@
     --ledger-green: #2F6F4E;
     --ledger-green-dark: #23573D;
     --coral: #C1502E;
+    --amber: #B8842A;
     --muted: #7A7263;
 }
 
@@ -104,6 +105,12 @@ h1, h2 {
     background: #E9F3EC;
     border-color: var(--ledger-green);
     color: var(--ledger-green-dark);
+}
+
+.flash-warning {
+    background: #FBF1E1;
+    border-color: var(--amber);
+    color: #7A5A17;
 }
 
 /* --- Auth cards / forms --- */
@@ -212,6 +219,58 @@ form input:focus, form select:focus {
     margin-bottom: 8px;
 }
 
+.card-subtext {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 6px;
+}
+
+.budget-card {
+    margin-bottom: 20px;
+}
+
+.budget-form {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.budget-form input {
+    flex: 1;
+}
+
+.budget-form .btn-primary {
+    margin-top: 0;
+    white-space: nowrap;
+}
+
+.progress-track {
+    margin-top: 16px;
+    height: 10px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+.progress-fill.progress-ok { background: var(--ledger-green); }
+.progress-fill.progress-warning { background: var(--amber); }
+.progress-fill.progress-over { background: var(--coral); }
+
+.progress-label {
+    margin: 8px 0 0 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+}
+
 .total-card .card-value {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 2.3rem;
@@ -277,7 +336,7 @@ form input:focus, form select:focus {
     font-size: 0.94rem;
 }
 
-.expense-table td:nth-child(3) {
+.expense-table td:nth-child(3), .expense-table td:nth-child(4) {
     font-family: 'IBM Plex Mono', monospace;
     font-weight: 600;
 }
@@ -303,4 +362,6 @@ form input:focus, form select:focus {
 @media (max-width: 600px) {
     .summary-cards { grid-template-columns: 1fr; }
     .navbar { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .budget-form { flex-direction: column; }
+    .budget-form .btn-primary { width: 100%; }
 }
